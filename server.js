@@ -10,6 +10,37 @@ var fccTestingRoutes  = require('./routes/fcctesting.js');
 var runner            = require('./test-runner');
 
 var app = express();
+app.set('trust proxy', true)
+
+// header protection
+var helmet = require('helmet')
+app.use(helmet())
+
+app.use(helmet.contentSecurityPolicy({
+  directives: {
+    defaultSrc: ["'self'"] 
+    ,styleSrc: ["'self'"]
+    ,scriptSrc:["'self'",'code.jquery.com',"'unsafe-inline'"]
+    ,imgSrc:["'self'",'hyperdev.com','glitch.com']  
+    //,reportUri: '/report-violation' 
+  }, loose: true
+}))
+
+// handle csp violation report
+app.use(bodyParser.json({
+  type: ['json', 'application/csp-report']
+}))
+
+app.post('/report-violation', function (req, res) {
+  if (req.body) {
+    console.log('CSP Violation: ', req.body)
+  } else {
+    console.log('CSP Violation: No data received!')
+  }
+
+  res.status(204).end()
+})
+
 
 app.use('/public', express.static(process.cwd() + '/public'));
 

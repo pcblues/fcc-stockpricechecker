@@ -5,12 +5,9 @@ let https=require('https')
 
 exports.getPrice= function(stock,callback) {
    var results=[]
-    // Verify the endpoint URI.  At this writing, only one endpoint is used for Bing
-    // search APIs.  In the future, regional endpoints may be available.  If you
-    // encounter unexpected authorization errors, double-check this host against
-    // the endpoint for your Bing Search instance in your Azure dashboard.
-    let host = 'finance.google.com'
-    let path = '/finance/info';
+
+    let host = 'www.alphavantage.co'
+    let path = '/query';
     
     let response_handler = function (response) {
         let body = '';
@@ -18,13 +15,20 @@ exports.getPrice= function(stock,callback) {
             body += d;
         });
         response.on('end', function () {
-            console.log('');
-          
-            var rawResults = JSON.parse(body).value
-            console.log(rawResults);
-            var result='9.34'
-              
+            var rawResults = body
             
+            results=JSON.parse(rawResults)
+            
+            var resultTS=results['Time Series (1min)']
+            if (resultTS==null) {
+               result='0.00' 
+            } else {
+              var resultRec = resultTS[Object.keys(resultTS)[0]]
+              var resultStr=resultRec['4. close']
+              var resultFloat=parseFloat(resultStr)
+              var result = resultFloat.toFixed(2)
+            }
+              
           callback(result)
         
         });
@@ -34,13 +38,14 @@ exports.getPrice= function(stock,callback) {
     };
 
     let get_price = function (stock) {
-        
+      var fullPath = path + '?function=TIME_SERIES_INTRADAY&symbol='+stock+'&interval=1min&apikey='+process.env.ALPHAKEY 
+      
       let request_params = {
             method : 'GET',
             hostname : host,
-            path : path + '?q=NASDAQ%3a' + encodeURIComponent(stock)
+            path : fullPath 
         };
-
+        
         let req = https.request(request_params, response_handler);
         req.end();
       

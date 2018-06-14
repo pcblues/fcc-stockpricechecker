@@ -5,7 +5,7 @@ let https=require('https')
 
 exports.getPrice= function(stock,callback) {
    var results=[]
-
+    var result
     let host = 'www.alphavantage.co'
     let path = '/query';
     
@@ -26,7 +26,7 @@ exports.getPrice= function(stock,callback) {
               var resultRec = resultTS[Object.keys(resultTS)[0]]
               var resultStr=resultRec['4. close']
               var resultFloat=parseFloat(resultStr)
-              var result = resultFloat.toFixed(2)
+              result = resultFloat.toFixed(2)
             }
               
           callback(result)
@@ -52,6 +52,8 @@ exports.getPrice= function(stock,callback) {
     }
 
     get_price(stock)
+    //result='1.00'
+    //callback(result)
 }
 
 

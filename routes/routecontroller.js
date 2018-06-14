@@ -22,10 +22,14 @@ var like
 var stockDB1
 var stockDB2
 
+var showLog=function(msg) {
+  //console.log(msg)
+}
+  
 exports.get = function(req,res){
-  console.log('using get')
+  showLog('using get')
   console.log(req.query)
-  //console.log(req.body)
+  
   var qparams = req.query
   var qbody = req.body
   
@@ -39,7 +43,7 @@ exports.get = function(req,res){
     numStocks=1
     stock1=qparams.stock
   }
-  console.log('numStocks: '+numStocks)
+  showLog('numStocks: '+numStocks)
   like=qparams.like
   ip= req.ip
 
@@ -49,7 +53,7 @@ exports.get = function(req,res){
 }
 
 function gotStock1(res,sdb1) {
-  console.log('gotStock1')
+  showLog('gotStock1')
   stockDB1=sdb1
   if (numStocks==2) {
     getStock(stock2,res,gotStock2)  
@@ -63,10 +67,10 @@ function gotStock1(res,sdb1) {
 function gotStock2(res,sdb2) {
  // likes
   stockDB2=sdb2
-  console.log('gotStock2')
+  showLog('gotStock2')
   if (like=='true') {
     if (stockDB1.likeIPs.indexOf(ip)==-1) {
-      console.log(like +' '+stockDB1.likeIPs.indexOf(ip)+' '+ip)
+      showLog(like +' '+stockDB1.likeIPs.indexOf(ip)+' '+ip)
       stockDB1.likeIPs.push(ip)
       stockDB1.likes+=1
       
@@ -78,7 +82,7 @@ function gotStock2(res,sdb2) {
     }
     }
   }
-  console.log('After likes:'+JSON.stringify(stockDB1))
+  showLog('After likes:'+JSON.stringify(stockDB1))
   // prices
   price.getPrice(stockDB1.stock,function(result) {
     //console.log(result)
@@ -101,21 +105,21 @@ function gotStock2(res,sdb2) {
 
 function doRest(res,numStocks,stockDB1,stockDB2) {
    // output
-  var stockdata = {stockdata:null}
+  var stockdata = {stockData:null}
   if (numStocks==1) {
      var stockBack1={stock:stockDB1.stock,price:stockDB1.price,likes:stockDB1.likes}
-     stockdata.stockdata=stockBack1
+     stockdata.stockData=stockBack1
   } else {
      var stockBack1={stock:stockDB1.stock,price:stockDB1.price,rel_likes:stockDB1.likes-stockDB2.likes}
      var stockBack2={stock:stockDB2.stock,price:stockDB2.price,rel_likes:stockDB2.likes-stockDB1.likes}
-    stockdata.stockdata=[stockBack1,stockBack2]      
+    stockdata.stockData=[stockBack1,stockBack2]      
   }
-  console.log(stockdata)
+  showLog(stockdata)
   res.send(stockdata)   
 }
 
 function getStock(stock,res,callback) {
-  console.log('getStock:'+stock)
+  showLog('getStock:'+stock)
   var docObj=populateNewRec(stock)
   mongo.connect(url,function(err,db) {
   if (err) {res.send(JSON.stringify(err))
@@ -128,17 +132,17 @@ function getStock(stock,res,callback) {
       }  else {
         //console.log(docs)
         if (docs.length==0) {
-          console.log('inserting record')
+          showLog('inserting record')
           coll.insert(docObj,function(err,data){
             if (err) { res.send(JSON.stringify(err))
             } else {
-              console.log('inserted')
+              showLog('inserted')
               callback(res,docObj)
             }
           })
         } else {
         docObj=docs[0] 
-        console.log('got this: '+JSON.stringify(docObj))
+        showLog('got this: '+JSON.stringify(docObj))
         db.close()
         callback(res,docObj)
         }
@@ -150,7 +154,7 @@ function getStock(stock,res,callback) {
 }      
 
 function putStock(stock,res) {
-  console.log('using putStock:'+JSON.stringify(stock))
+  showLog('using putStock:'+JSON.stringify(stock))
   mongo.connect(url,function(err,db) {
   if (err) {res.send(JSON.stringify(err))
   } else {
@@ -158,12 +162,12 @@ function putStock(stock,res) {
     var coll = dbo.collection(collName)
     coll.update({_id:ObjectId(stock._id)},stock,function(err,count) {
       if (err ) {
-        console.log('Error:'+err)
-        console.log('could not update '+stock._id)
+        showLog('Error:'+err)
+        showLog('could not update '+stock._id)
       } else if (count.n==0) {
-        console.log('id not found '+stock._id)
+        showLog('id not found '+stock._id)
       } else {
-        console.log('successfully updated')
+        showLog('successfully updated')
       }      
     db.close()
     }
